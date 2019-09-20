@@ -19,14 +19,14 @@ public class MainActivity extends AppCompatActivity {
 
         Pokemon.init(getResources());
 
-        recyclerView = (RecyclerView) findViewById(R.id.recycler);
+        recyclerView = findViewById(R.id.recycler);
 
         recyclerView.setHasFixedSize(true);
 
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new MyAdapter(Pokemon.pokeSet.toArray(new Pokemon[0]));
+        adapter = new PokeAdapter(Pokemon.pokeSet.toArray(new Pokemon[0]), this);
         recyclerView.setAdapter(adapter);
     }
 }

@@ -108,4 +108,8 @@ public class Pokemon {
     public String getName() {
         return name;
     }
+
+    public String getURL() {
+        return "https://img.pokemondb.net/artwork/" + name.toLowerCase() + ".jpg";
+    }
 }
