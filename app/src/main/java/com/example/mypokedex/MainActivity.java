@@ -2,16 +2,19 @@ package com.example.mypokedex;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.transition.Scene;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.transition.TransitionManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -29,9 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager layoutManager;
 
     private Button spinButton, menuButton;
-
-    private Scene noMenu, withMenu;
-    private ViewGroup sceneRoot;
+    private View menuCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +81,20 @@ public class MainActivity extends AppCompatActivity {
 
                 AlertDialog dialog = builder.create();
                 dialog.show();
+            }
+        });
+
+        LayoutInflater inflater = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater.inflate(R.id.recyclerCard, null);
+
+
+        menuCard = findViewById(R.id.slidingMenu);
+
+        menuButton = findViewById(R.id.menuButton);
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((ConstraintLayout) menuCard.getParent()).removeView(menuCard);
             }
         });
     }
