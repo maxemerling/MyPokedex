@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class Pokemon {
 
-    private static Set<Pokemon> pokeSet = new HashSet<>();
+    public static Set<Pokemon> pokeSet = new HashSet<>();
     private static Map<String, Set<Pokemon>> typeMap = new HashMap<>();
 
     private String name;
@@ -103,5 +103,9 @@ public class Pokemon {
 
     public void setTypes(String[] types) {
         this.types = types;
+    }
+
+    public String getName() {
+        return name;
     }
 }
