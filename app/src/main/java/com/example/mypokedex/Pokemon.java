@@ -26,7 +26,6 @@ public class Pokemon {
     public static final Set<Pokemon> pokeSet = new HashSet<>();
     public static final Map<String, Set<Pokemon>> typeMap = new HashMap<>();
     public static String[] allTypes;
-    public static boolean[] selected;
 
 
     private String name;
@@ -77,10 +76,6 @@ public class Pokemon {
             }
 
             allTypes = typeMap.keySet().toArray(new String[0]);
-            selected = new boolean[allTypes.length];
-            for (int i = 0; i < selected.length; i++) {
-                selected[i] = true;
-            }
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
