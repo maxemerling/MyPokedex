@@ -54,7 +54,7 @@ public class PokeAdapter extends RecyclerView.Adapter<PokeAdapter.MyViewHolder> 
         holder.textView.setText(curr.getName());
 
         String url = curr.getURL();
-        if (Patterns.WEB_URL.matcher(url).matches()) {
+        if (false && Patterns.WEB_URL.matcher(url).matches()) {
             Glide.with(context)
                     .load(url)
                     .into(holder.imageView);

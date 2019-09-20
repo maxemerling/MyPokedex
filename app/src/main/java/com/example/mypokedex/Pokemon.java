@@ -23,8 +23,11 @@ import java.util.Set;
 
 public class Pokemon {
 
-    public static Set<Pokemon> pokeSet = new HashSet<>();
-    private static Map<String, Set<Pokemon>> typeMap = new HashMap<>();
+    public static final Set<Pokemon> pokeSet = new HashSet<>();
+    public static final Map<String, Set<Pokemon>> typeMap = new HashMap<>();
+    public static String[] allTypes;
+    public static boolean[] selected;
+
 
     private String name;
     private int attack, defense, health;
@@ -71,6 +74,12 @@ public class Pokemon {
                     }
                     typeMap.get(type).add(curr);
                 }
+            }
+
+            allTypes = typeMap.keySet().toArray(new String[0]);
+            selected = new boolean[allTypes.length];
+            for (int i = 0; i < selected.length; i++) {
+                selected[i] = true;
             }
 
         } catch (UnsupportedEncodingException e) {
