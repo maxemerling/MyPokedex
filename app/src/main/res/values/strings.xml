@@ -11,4 +11,6 @@
     <string name="speed">Speed</string>
     <string name="total">Total</string>
     <string name="type">Types</string>
+    <string name="textview">TextView</string>
+    <string name="todo">TODO</string>
 </resources>
