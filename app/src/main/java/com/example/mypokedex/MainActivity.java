@@ -1,11 +1,12 @@
 package com.example.mypokedex;
 
-import android.accessibilityservice.FingerprintGestureController;
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
@@ -16,21 +17,19 @@ import android.widget.SearchView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
-
 import static com.example.mypokedex.Pokemon.allTypes;
-import static com.example.mypokedex.Pokemon.init;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
-    private RecyclerView.LayoutManager layoutManager;
+    private RecyclerView.LayoutManager layoutManager, gridLayoutManager;
 
-    private Button spinButton, menuButton, searchButton, resetButton;
+    private Button spinButton, menuButton, switchButton, resetButton;
     private View menuCard, recyclerCard;
     private SearchView searchView;
     private EditText attackNumber, defenseNumber, healthNumber;
@@ -40,14 +39,18 @@ public class MainActivity extends AppCompatActivity {
     private ObjectAnimator up, down;
     private Animation fadeIn, fadeOut;
 
-    private boolean showingMenu = true;
+    private boolean showingMenu = true, grid = false;
 
     private volatile Pokemon[] liveData;
+
+    public static volatile MainActivity currInstance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        currInstance = this;
 
         //do this so that keyboard doesn't shift layout
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
@@ -79,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         selected = currSelection;
-                        staticSearchAndDisplay();
+                        searchAndDisplay();
                     }
                 });
 
@@ -100,27 +103,37 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String s) {
-                staticSearchAndDisplay();
+                searchAndDisplay();
                 //dynamicSearchAndDisplay(searchView.getQuery().toString());
                 return false;
             }
         });
 
-        //search button
-
-        searchButton = findViewById(R.id.searchButton);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                staticSearchAndDisplay();
-            }
-        });
-
         //minimum attack, defense, health selectors
 
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                searchAndDisplay();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        };
+
         attackNumber = findViewById(R.id.attackNumber);
+        attackNumber.addTextChangedListener(textWatcher);
         defenseNumber = findViewById(R.id.defenseNumber);
+        defenseNumber.addTextChangedListener(textWatcher);
         healthNumber = findViewById(R.id.healthNumber);
+        healthNumber.addTextChangedListener(textWatcher);
 
         //reset button
         resetButton = findViewById(R.id.resetButton);
@@ -128,6 +141,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 reset();
+            }
+        });
+
+        //switch button
+
+        gridLayoutManager = new GridLayoutManager(this, 2);
+
+        switchButton = findViewById(R.id.switchButton);
+        switchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (grid) {
+                    switchButton.setText("GRID");
+                    recyclerView.setLayoutManager(layoutManager);
+
+                } else {
+                    switchButton.setText("LIST");
+                    recyclerView.setLayoutManager(gridLayoutManager);
+                }
+                grid = !grid;
             }
         });
 
@@ -209,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         menuCard.startAnimation(fadeIn);
     }
 
-    private synchronized void staticSearchAndDisplay() {
+    private synchronized void searchAndDisplay() {
         String searchStr = searchView.getQuery().toString();
         int minAttack, minDefense, minHealth;
 
@@ -248,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
         attackNumber.setText("");
         defenseNumber.setText("");
         healthNumber.setText("");
-        staticSearchAndDisplay();
+        searchAndDisplay();
     }
 
     private synchronized void initSelected() {
@@ -256,5 +289,11 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < selected.length; i++) {
             selected[i] = true;
         }
+    }
+
+    public void openPokePage(String pokemon) {
+        Intent intent = new Intent(this, PokePage.class);
+        intent.putExtra(PokePage.DATA, Pokemon.pokeMap.get(pokemon).getData());
+        startActivity(intent);
     }
 }

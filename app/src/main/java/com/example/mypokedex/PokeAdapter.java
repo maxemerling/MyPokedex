@@ -1,6 +1,7 @@
 package com.example.mypokedex;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,12 @@ public class PokeAdapter extends RecyclerView.Adapter<PokeAdapter.MyViewHolder> 
             super(view);
             textView = view.findViewById(R.id.pokeName);
             imageView = view.findViewById(R.id.pokeImage);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MainActivity.currInstance.openPokePage(textView.getText().toString());
+                }
+            });
         }
     }
 
@@ -53,14 +60,7 @@ public class PokeAdapter extends RecyclerView.Adapter<PokeAdapter.MyViewHolder> 
         Pokemon curr = dataset[position];
         holder.textView.setText(curr.getName());
 
-        String url = curr.getURL();
-        if (false && Patterns.WEB_URL.matcher(url).matches()) {
-            Glide.with(context)
-                    .load(url)
-                    .into(holder.imageView);
-        } else {
-            holder.imageView.setImageResource(R.drawable.pokeball);
-        }
+        holder.imageView.setImageResource(R.drawable.pokeball);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
