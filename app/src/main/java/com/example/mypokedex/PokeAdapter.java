@@ -68,5 +68,10 @@ public class PokeAdapter extends RecyclerView.Adapter<PokeAdapter.MyViewHolder> 
     public int getItemCount() {
         return dataset.length;
     }
+
+    public synchronized void updateData(Pokemon[] newDataset) {
+        dataset = newDataset;
+        notifyDataSetChanged();
+    }
 }
 

@@ -1,41 +1,28 @@
 package com.example.mypokedex;
 
+import android.accessibilityservice.FingerprintGestureController;
+import android.animation.ObjectAnimator;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.SearchView;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.animation.ObjectAnimator;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.os.Bundle;
-import android.transition.Scene;
-import android.transition.Transition;
-import android.transition.TransitionInflater;
-import android.transition.TransitionManager;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.TranslateAnimation;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.Spinner;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.example.mypokedex.Pokemon.allTypes;
+import static com.example.mypokedex.Pokemon.init;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,17 +30,19 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
-    private Button spinButton, menuButton;
+    private Button spinButton, menuButton, searchButton, resetButton;
     private View menuCard, recyclerCard;
+    private SearchView searchView;
     private EditText attackNumber, defenseNumber, healthNumber;
 
-    private volatile int min_attack, min_defense, min_health;
     public static volatile boolean[] selected;
 
     private ObjectAnimator up, down;
     private Animation fadeIn, fadeOut;
 
     private boolean showingMenu = true;
+
+    private volatile Pokemon[] liveData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,11 +56,7 @@ public class MainActivity extends AppCompatActivity {
         Pokemon.init(getResources());
 
         //type selector
-
-        selected = new boolean[allTypes.length];
-        for (int i = 0; i < selected.length; i++) {
-            selected[i] = true;
-        }
+        initSelected();
 
         spinButton = findViewById(R.id.spinButton);
         spinButton.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         selected = currSelection;
+                        staticSearchAndDisplay();
                     }
                 });
 
@@ -104,12 +90,46 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //searcher
+        searchView = findViewById(R.id.searchView);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                staticSearchAndDisplay();
+                //dynamicSearchAndDisplay(searchView.getQuery().toString());
+                return false;
+            }
+        });
+
+        //search button
+
+        searchButton = findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                staticSearchAndDisplay();
+            }
+        });
+
         //minimum attack, defense, health selectors
 
         attackNumber = findViewById(R.id.attackNumber);
         defenseNumber = findViewById(R.id.defenseNumber);
         healthNumber = findViewById(R.id.healthNumber);
 
+        //reset button
+        resetButton = findViewById(R.id.resetButton);
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                reset();
+            }
+        });
 
         //recycler view
         recyclerView = findViewById(R.id.recycler);
@@ -119,7 +139,9 @@ public class MainActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new PokeAdapter(Pokemon.pokeSet.toArray(new Pokemon[0]), this);
+        liveData = Pokemon.pokeSet.toArray(new Pokemon[0]);
+
+        adapter = new PokeAdapter(liveData, this);
         recyclerView.setAdapter(adapter);
 
         recyclerCard = findViewById(R.id.recyclerCard);
@@ -167,21 +189,72 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (showingMenu) {
                     hideMenu();
+                    menuButton.setText("O");
                 } else {
                     showMenu();
+                    menuButton.setText("X");
                 }
                 showingMenu = !showingMenu;
             }
         });
     }
 
-    private void hideMenu() {
+    private synchronized void hideMenu() {
         menuCard.startAnimation(fadeOut);
         up.start();
     }
 
-    private void showMenu() {
+    private synchronized void showMenu() {
         down.start();
         menuCard.startAnimation(fadeIn);
+    }
+
+    private synchronized void staticSearchAndDisplay() {
+        String searchStr = searchView.getQuery().toString();
+        int minAttack, minDefense, minHealth;
+
+        String attack = attackNumber.getText().toString();
+        if (attack.isEmpty()) {
+            minAttack = 0;
+        } else {
+            minAttack = Integer.parseInt(attack);
+        }
+
+        String defense = defenseNumber.getText().toString();
+        if (defense.isEmpty()) {
+            minDefense = 0;
+        } else {
+            minDefense = Integer.parseInt(defense);
+        }
+
+        String health = healthNumber.getText().toString();
+        if (health.isEmpty()) {
+            minHealth = 0;
+        } else {
+            minHealth = Integer.parseInt(health);
+        }
+
+        liveData = Searcher.Companion.search(searchStr, minAttack, minDefense, minHealth, Searcher.Companion.getCategories());
+
+        updateData(liveData);
+    }
+
+    private synchronized void updateData(Pokemon[] data) {
+        ((PokeAdapter) adapter).updateData(data);
+    }
+
+    private synchronized void reset() {
+        initSelected();
+        attackNumber.setText("");
+        defenseNumber.setText("");
+        healthNumber.setText("");
+        staticSearchAndDisplay();
+    }
+
+    private synchronized void initSelected() {
+        selected = new boolean[allTypes.length];
+        for (int i = 0; i < selected.length; i++) {
+            selected[i] = true;
+        }
     }
 }

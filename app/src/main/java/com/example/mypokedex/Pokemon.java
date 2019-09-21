@@ -116,4 +116,16 @@ public class Pokemon {
     public String getURL() {
         return "https://img.pokemondb.net/artwork/" + name.toLowerCase() + ".jpg";
     }
+
+    public int getAttack() {
+        return attack;
+    }
+
+    public int getDefense() {
+        return defense;
+    }
+
+    public int getHealth() {
+        return health;
+    }
 }
